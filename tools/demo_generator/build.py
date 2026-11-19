@@ -3,7 +3,7 @@
 
 Запуск (потрібні reportlab, python-docx, openpyxl і шрифти DejaVuSans*.ttf):
 
-    python tools/demo_generator/build.py --out demo --fonts <папка з DejaVuSans.ttf і DejaVuSans-Bold.ttf>
+    python tools/demo_generator/build.py --out _generated --fonts <папка з DejaVuSans.ttf і DejaVuSans-Bold.ttf>
 
 Папка --out очищається перед генерацією.
 """
@@ -24,9 +24,9 @@ from world import COMPANY, PROJECTS, TENDERS, SPECS
 
 def readme(out):
     R.md(out / "README.md", f"""
-# Демонстраційна база знань (ДЕМО)
+# Tender_AUTOMATION: демонстраційна база знань для тендерів (ДЕМО)
 
-**Усі дані в цій папці вигадані.** Компанія «{COMPANY['short']}», замовники, особи, коди, суми, договори, акти й листи-відгуки згенеровані скриптом `tools/demo_generator/` і не мають стосунку до реальних організацій. Збіги випадкові. Кожен PDF і DOCX має позначку «ДЕМО».
+**Усі дані в цьому репозиторії вигадані.** Компанія «{COMPANY['short']}», замовники, особи, коди, суми, договори, акти й листи-відгуки згенеровані скриптом `tools/demo_generator/` і не мають стосунку до реальних організацій. Збіги випадкові. Кожен PDF і DOCX має позначку «ДЕМО».
 
 Структура повторює реальну базу знань (див. `Системна інструкція проєкту (нова версія).md` і `rules/`):
 
@@ -41,19 +41,21 @@ def readme(out):
 | `templates/` | Шаблони CV, чек-листа, довідки про досвід | 4 |
 | `tenders/` | Папки тендерів: документація, аналіз, заявка, довідки, чек-лист | {len(TENDERS)} тендерів |
 
-Правила роботи лежать у `../rules/` (одні для реальної й демонстраційної бази).
+Правила роботи лежать у `rules/` (обезличені); у корені також `Системна інструкція проєкту (нова версія).md`, `Беклог ідей.md` і `Журнал-нюансів.md`.
 
-Перегенерація: `python tools/demo_generator/build.py --out demo --fonts <шрифти DejaVu>`.
+Перегенерація: `python tools/demo_generator/build.py --out _generated --fonts <шрифти DejaVu>`.
 """)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="demo")
+    ap.add_argument("--out", default="_generated")
     ap.add_argument("--fonts", required=True)
     a = ap.parse_args()
     repo = Path(__file__).resolve().parents[2]
     out = (repo / a.out).resolve()
+    if out == repo or repo in out.parents and out.name in {"rules", "tools", ".git"}:
+        sys.exit("Відмова: --out не може бути коренем репозиторію чи службовою папкою")
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
